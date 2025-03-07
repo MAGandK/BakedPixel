@@ -1,5 +1,6 @@
 using System;
-using Services.Storage;
+using System.Collections.Generic;
+
 using UnityEngine;
 
 namespace Services.Inventory
@@ -7,17 +8,11 @@ namespace Services.Inventory
     public interface IInventoryService
     {
         event Action CellCountChanged;
-        event Action<string> IdChanged;
-        event Action<int> ItemCountChanged;
-        event Action<string, int> ItemsAdded;
-        event Action<string,int> ItemsRemoved;
-        
-        string Id { get; }
-        int Cont { get; }
-        bool IsEmpty { get; }
-        
-        void AddItem(string id);
-        void AddItem(string id, Vector2Int position);
+        event Action<Vector2Int> CellChanged;
+
+        Dictionary<Vector2Int, InventoryItemData> InventoryMap { get; }
+        void AddItem(string id, int count);
+        void AddItem(string id, Vector2Int position, int count);
         void RemoveItem(string id);
         void RemoveItem(string id, Vector2Int position);
 
@@ -25,5 +20,6 @@ namespace Services.Inventory
         int GetUnlockCellCount();
 
         void UnlockCell();
+        InventoryItemData GetData(Vector2Int position);
     }
 }

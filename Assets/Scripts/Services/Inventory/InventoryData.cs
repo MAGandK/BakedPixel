@@ -11,6 +11,8 @@ namespace Services.Inventory
         [JsonProperty] private int _additionalCellCount;
 
         public int AdditionalCellCount => _additionalCellCount;
+        public List<InventoryItemData> InventoryItems => _inventoryItems;
+        
 
         public InventoryData(string key) : base(key)
         {
@@ -25,7 +27,12 @@ namespace Services.Inventory
         public void UnlockCell()
         {
             _additionalCellCount++;
-            
+            OnChanged();
+        }
+
+        public void SetNewInventoryItems(List<InventoryItemData> inventoryItemDatas)
+        {
+            _inventoryItems = inventoryItemDatas;
             OnChanged();
         }
     }

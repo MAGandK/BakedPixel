@@ -8,11 +8,11 @@ namespace Services.Inventory
         [SerializeField] private string _id;
         [SerializeField] private Sprite _icon;
         [SerializeField] private float _weight;
-        [SerializeField] private float _maxCount;
-        
+        [SerializeField] private int _maxCount;
+
         public string Id => _id;
         public Sprite Icon => _icon;
         public float Weight => _weight;
-        public float MaxCount => _maxCount;
+        public int MaxCount => _maxCount;
     }
 }

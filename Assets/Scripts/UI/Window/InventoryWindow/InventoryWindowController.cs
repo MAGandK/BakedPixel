@@ -1,15 +1,20 @@
+using System.Linq;
 using Services.Inventory;
+using UnityEngine;
 
 namespace UI.Window.InventoryWindow
 {
     public class InventoryWindowController : AbstractWindowController<InventoryWindowView>
     {
-        private IInventoryService _inventoryService;
+        private readonly IInventoryService _inventoryService;
         private readonly InventoryWindowView _view;
         private readonly InventoryConfig _inventoryConfig;
 
-        public InventoryWindowController(InventoryWindowView view, IInventoryService inventoryService,
-            InventoryConfig inventoryConfig) : base(view)
+        public InventoryWindowController(
+            InventoryWindowView view,
+            IInventoryService inventoryService,
+            InventoryConfig inventoryConfig
+        ) : base(view)
         {
             _inventoryService = inventoryService;
             _view = view;
@@ -19,27 +24,70 @@ namespace UI.Window.InventoryWindow
         public override void Initialize()
         {
             base.Initialize();
-            
-            int rows = _inventoryConfig.MaxCellLine; 
-            int columns = _inventoryConfig.CellLineItemCount; 
-            int unlockCells = _inventoryService.GetUnlockCellCount(); 
+
+            var rows = _inventoryConfig.Row;
+            var columns = _inventoryConfig.Column;
+            var unlockCells = _inventoryService.GetUnlockCellCount();
 
             _view.PrepareCells(rows, columns, unlockCells);
-            
-            _view.SubscribeButton(OnAddItemButtonClick, OnDeleteButtonClick);
-        }
-        
-        private void OnDeleteButtonClick()
-        {
-           _inventoryService.RemoveItem("");
-     
+            _view.FillCells(_inventoryService.InventoryMap, GetSprite);
+
+            _view.SubscribeButton(OnAddRandomItemButtonClick, OnDeleteButtonClick);
         }
 
-        private void OnAddItemButtonClick()
+        private Sprite GetSprite(string id)
         {
-            _inventoryService.AddItem("");
-         
+            var sprite = _inventoryConfig.ItemConfigs.FirstOrDefault(x => x.Id.Equals(id))?.Icon;
+            Debug.Log($"Getting sprite for {id}: {sprite?.name}");
+            return sprite;
+        }
+
+        protected override void OnShow()
+        {
+            base.OnShow();
+
+            _inventoryService.CellChanged += InventoryServiceOnCellChanged;
+        }
+
+        protected override void OnHide()
+        {
+            base.OnHide();
+            _inventoryService.CellChanged -= InventoryServiceOnCellChanged;
+        }
+
+        private InventoryItemConfig GetRandomConfig()
+        {
+            var randomItemIndex = Random.Range(0, _inventoryConfig.ItemConfigs.Length);
+            return _inventoryConfig.ItemConfigs[randomItemIndex];
+        }
+
+        private void OnAddRandomItemButtonClick()
+        {
+            var inventoryItemConfig = GetRandomConfig();
+            var range = Random.Range(0, inventoryItemConfig.MaxCount);
+            Debug.Log($"Adding item: {inventoryItemConfig.Id}, count: {range}");
+            _inventoryService.AddItem(inventoryItemConfig.Id, range);
+        }
+
+        private void OnDeleteButtonClick()
+        {
+            Debug.Log("Delete button clicked");
+            var inventoryItemConfig = GetRandomConfig();
+
+            _inventoryService.RemoveItem(inventoryItemConfig.Id);
+        }
+
+        private void InventoryServiceOnCellChanged(Vector2Int position)
+        {
+            var data = _inventoryService.GetData(position);
+
+            if (data == null)
+            {
+                _view.RefreshCell(position, 0, null);
+                return;
+            }
+
+            _view.RefreshCell(position, data.Count, GetSprite(data.ID));
         }
     }
-    
 }

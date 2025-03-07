@@ -18,13 +18,11 @@ namespace Installers
         private void BindInventory()
         {
             Container.Bind<InventoryConfig>().FromInstance(_inventoryConfig).AsSingle();
-            Container.Bind<IInventoryService>().To<InventoryService>().AsSingle();
+            Container.Bind(typeof(IInventoryService), typeof(IInitializable)).To<InventoryService>().AsSingle();
         }
 
         private void BindStorage()
         {
-            Container.Bind<IStorageData>().To<LevelProgressStorageData>().AsSingle().WithArguments(StorageDataNames.LEVEL_PROGRESS_STORAGE_DATA_KEY);
-            Container.Bind<IStorageData>().To<WalletStorageData>().AsSingle().WithArguments(StorageDataNames.WALLET_STORAGE_DATA_KEY);
             Container.Bind<IStorageData>().To<InventoryData>().AsSingle().WithArguments(StorageDataNames.INVENTORY_DATA_KEY);
             
             Container.Bind(typeof(IStorageService), typeof(IInitializable)).To<StorageService>()

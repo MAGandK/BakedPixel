@@ -4,7 +4,7 @@ namespace UI
 {
     public abstract class AbstractWindowController<T> : IInitializable, IWindowController where T : IWindowView
     {
-        private  T _baseView;
+        private T _baseView;
         protected UIController _uiController;
 
         protected AbstractWindowController(T view)
@@ -14,9 +14,8 @@ namespace UI
 
         public virtual void Initialize()
         {
-            
         }
-        
+
         public void Show()
         {
             _baseView.Show();
@@ -36,12 +35,10 @@ namespace UI
 
         protected virtual void OnShow()
         {
-            
         }
 
         protected virtual void OnHide()
         {
-            
         }
     }
 }

@@ -14,5 +14,17 @@ namespace Services.Inventory
         public Vector2Int Position => _position;
         public string ID => _id;
         public int Count => _count;
+
+        public InventoryItemData(string id, int count, Vector2Int position)
+        {
+            _id = id;
+            _count = count;
+            _position = position;
+        }
+
+        public void AddCount(int count)
+        {
+            _count = count;
+        }
     }
 }

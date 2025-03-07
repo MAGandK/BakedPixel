@@ -10,7 +10,7 @@ namespace Services.Storage
         [JsonProperty] private List<WalletItem> _balance = new List<WalletItem>();
 
         public List<WalletItem> Balance => _balance;
-        
+
         public WalletStorageData(string key) : base(key)
         {
         }
@@ -38,7 +38,7 @@ namespace Services.Storage
 
         public bool CanPurchase(CurrencyType type, int value)
         {
-            return  GetBalance(type)>= value;
+            return GetBalance(type) >= value;
         }
 
         public int GetBalance(CurrencyType currencyType)
