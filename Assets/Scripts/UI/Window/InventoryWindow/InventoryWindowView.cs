@@ -4,6 +4,7 @@ using Services.Inventory;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
+using Random = UnityEngine.Random;
 
 namespace UI.Window.InventoryWindow
 {
@@ -37,7 +38,7 @@ namespace UI.Window.InventoryWindow
                 }
             }
         }
-
+        
         public void FillCells(Dictionary<Vector2Int, InventoryItemData> inventoryItems, Func<string, Sprite> getSprite)
         {
             foreach (var (position, data) in inventoryItems)

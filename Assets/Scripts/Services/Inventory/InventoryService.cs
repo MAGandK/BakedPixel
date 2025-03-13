@@ -42,23 +42,43 @@ namespace Services.Inventory
         public void AddItem(string id, int count)
         {
             Debug.Log($"Adding item: {id}, count: {count}");
+            
+            var itemConfig = FindItemConfigById(id);
+            
+            var itemConfigMaxCount = itemConfig.MaxCount;
+
+            foreach (var (position,inventoryItemData) in _inventoryMap)
+            {
+                if (inventoryItemData.ID == id && inventoryItemData.Count < itemConfigMaxCount)
+                {
+                    var configMaxCount = itemConfigMaxCount - inventoryItemData.Count;
+                    
+                    inventoryItemData.AddCount(configMaxCount);
+
+                    count -= configMaxCount;
+                    
+                    CellChanged?.Invoke(position);
+                }
+            }
+            
             for (int i = 0; i < _configs.Row; i++)
             {
                 for (int j = 0; j < _configs.Column; j++)
                 {
                     var tempPosition = new Vector2Int(i, j);
-
+            
                     if (!_inventoryMap.ContainsKey(tempPosition))
                     {
                         _inventoryMap.Add(tempPosition, new InventoryItemData(id, count, tempPosition));
-
+            
                         CellChanged?.Invoke(tempPosition);
-
+            
                         return;
                     }
                 }
             }
         }
+        
 
         public void AddItem(string id, Vector2Int position, int count)
         {
@@ -77,7 +97,7 @@ namespace Services.Inventory
             CellChanged?.Invoke(position);
         }
 
-        public void RemoveItem(string id)
+        public void RemoveItem(string id, int count)
         {
             var inventoryMap = _inventoryMap;
 
@@ -95,7 +115,7 @@ namespace Services.Inventory
             _inventoryMap = inventoryMap;
         }
 
-        public void RemoveItem(string id, Vector2Int position)
+        public void RemoveItem(string id, Vector2Int position, int count)
         {
             if (!_inventoryMap.ContainsKey(position))
             {

@@ -13,8 +13,8 @@ namespace Services.Inventory
         Dictionary<Vector2Int, InventoryItemData> InventoryMap { get; }
         void AddItem(string id, int count);
         void AddItem(string id, Vector2Int position, int count);
-        void RemoveItem(string id);
-        void RemoveItem(string id, Vector2Int position);
+        void RemoveItem(string id, int count);
+        void RemoveItem(string id, Vector2Int position, int count);
 
         int GetMaxCellCount();
         int GetUnlockCellCount();

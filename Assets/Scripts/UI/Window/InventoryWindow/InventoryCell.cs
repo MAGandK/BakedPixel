@@ -1,12 +1,14 @@
 using System;
+using Services.Inventory;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace UI.Window.InventoryWindow
 {
-    public class InventoryCell : MonoBehaviour, IPointerClickHandler
+    public class InventoryCell : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDragHandler, IDropHandler
     {
         private event Action Clicked;
 
@@ -16,10 +18,28 @@ namespace UI.Window.InventoryWindow
         [SerializeField] private TMP_Text _textCount;
         [SerializeField] private Image _itemImage;
 
-        public void Setup(bool isLock, int count, Sprite sprite)
+        private RectTransform _rectTransform;
+        private InventoryService _inventoryService;
+        private InventoryItemData _currentItemData;
+        private CanvasGroup _canvasGroup;
+        private Canvas _canvas;
+        
+        private Vector2 _originalPosition;
+
+        public Vector2Int Position { get; private set; }
+        
+        private void Awake()
+        {
+            _rectTransform = GetComponent<RectTransform>();
+            _canvasGroup = GetComponent<CanvasGroup>();
+            _canvas = GetComponentInParent<Canvas>();
+        }
+        public void Setup(bool isLock, int count, Sprite sprite,Vector2Int position, InventoryItemData itemData)
         {
             SetIsLock(isLock);
             Refresh(count, sprite);
+            Position = position;
+            _currentItemData = itemData;
         }
 
         public void SetIsLock(bool isLock)
@@ -50,10 +70,31 @@ namespace UI.Window.InventoryWindow
                 _itemImage.sprite = sprite;
             }
         }
-
-        public void OnPointerClick(PointerEventData eventData)
+        
+        public void OnPointerDown(PointerEventData eventData)
         {
-            Clicked?.Invoke();
+            _originalPosition = _rectTransform.anchoredPosition;
+           // _itemImage.gameObject.SetActive(false);
+           _canvasGroup.alpha = 0.6f;
+        }
+
+        public void OnPointerUp(PointerEventData eventData)
+        {
+            var dropPosition = eventData.position;
+            Vector2Int targetPosition = new Vector2Int(Mathf.FloorToInt(dropPosition.x / _rectTransform.rect.width), 
+                                                        Mathf.FloorToInt(dropPosition.y / _rectTransform.rect.height));
+            _inventoryService.AddItem(_currentItemData.ID, targetPosition, _currentItemData.Count);
+        }
+
+        public void OnDrag(PointerEventData eventData)
+        {
+            _rectTransform.anchoredPosition += eventData.delta / _canvas.scaleFactor;
+        }
+
+
+        public void OnDrop(PointerEventData eventData)
+        {
+           
         }
     }
 }

@@ -11,9 +11,7 @@ namespace Scene
 
         private void Awake()
         {
-
             StartCoroutine(LoadSceneCor());
-
         }
 
         private IEnumerator LoadSceneCor()

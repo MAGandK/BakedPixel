@@ -37,9 +37,7 @@ namespace UI.Window.InventoryWindow
 
         private Sprite GetSprite(string id)
         {
-            var sprite = _inventoryConfig.ItemConfigs.FirstOrDefault(x => x.Id.Equals(id))?.Icon;
-            Debug.Log($"Getting sprite for {id}: {sprite?.name}");
-            return sprite;
+            return _inventoryConfig.ItemConfigs.FirstOrDefault(x => x.Id.Equals(id))?.Icon;
         }
 
         protected override void OnShow()
@@ -74,7 +72,7 @@ namespace UI.Window.InventoryWindow
             Debug.Log("Delete button clicked");
             var inventoryItemConfig = GetRandomConfig();
 
-            _inventoryService.RemoveItem(inventoryItemConfig.Id);
+            _inventoryService.RemoveItem(inventoryItemConfig.Id, 1);
         }
 
         private void InventoryServiceOnCellChanged(Vector2Int position)
