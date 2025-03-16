@@ -41,44 +41,56 @@ namespace Services.Inventory
 
         public void AddItem(string id, int count)
         {
-            Debug.Log($"Adding item: {id}, count: {count}");
-            
             var itemConfig = FindItemConfigById(id);
-            
+
             var itemConfigMaxCount = itemConfig.MaxCount;
 
-            foreach (var (position,inventoryItemData) in _inventoryMap)
+            foreach (var (position, inventoryItemData) in _inventoryMap)
             {
                 if (inventoryItemData.ID == id && inventoryItemData.Count < itemConfigMaxCount)
                 {
-                    var configMaxCount = itemConfigMaxCount - inventoryItemData.Count;
+                    if (inventoryItemData.Count + count <= itemConfigMaxCount)
+                    {
+                        inventoryItemData.SetCount(inventoryItemData.Count + count);
+                    }
+                    else
+                    {
+                        //додутамь
+                    }
                     
-                    inventoryItemData.AddCount(configMaxCount);
 
-                    count -= configMaxCount;
-                    
                     CellChanged?.Invoke(position);
+
+                    return;
                 }
             }
-            
+
             for (int i = 0; i < _configs.Row; i++)
             {
                 for (int j = 0; j < _configs.Column; j++)
                 {
                     var tempPosition = new Vector2Int(i, j);
-            
+
                     if (!_inventoryMap.ContainsKey(tempPosition))
                     {
-                        _inventoryMap.Add(tempPosition, new InventoryItemData(id, count, tempPosition));
-            
+
+                        if (count <= itemConfigMaxCount)
+                        {
+                            _inventoryMap.Add(tempPosition, new InventoryItemData(id, count, tempPosition));
+                        }
+                        else
+                        {
+                            //додутамь
+                        }
+
                         CellChanged?.Invoke(tempPosition);
-            
+
                         return;
                     }
                 }
             }
         }
-        
+
 
         public void AddItem(string id, Vector2Int position, int count)
         {
@@ -89,7 +101,7 @@ namespace Services.Inventory
                     return;
                 }
 
-                inventoryItemData.AddCount(count);
+                inventoryItemData.SetCount(count);
             }
 
             _inventoryMap.Add(position, new InventoryItemData(id, count, position));
@@ -151,6 +163,12 @@ namespace Services.Inventory
         public InventoryItemData GetData(Vector2Int position)
         {
             return _inventoryMap.GetValueOrDefault(position);
+        }
+
+        public void ClearCell(Vector2Int position)
+        {
+            _inventoryMap.Remove(position);
+            CellChanged?.Invoke(position);
         }
 
         private void OnCellChanged(Vector2Int obj)

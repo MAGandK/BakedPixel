@@ -22,7 +22,7 @@ namespace Services.Inventory
             _position = position;
         }
 
-        public void AddCount(int count)
+        public void SetCount(int count)
         {
             _count = count;
         }

@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5b3f06238c7544c319f3dd4682bc7afe, type: 3}
   m_Name: TreasureChest
   m_EditorClassIdentifier: 
-  _id: 1
+  _id: chest
   _icon: {fileID: 21300000, guid: a375b62e88727de438c02bb51fe5815c, type: 3}
   _weight: 0.1
   _maxCount: 30

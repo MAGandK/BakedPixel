@@ -21,5 +21,6 @@ namespace Services.Inventory
 
         void UnlockCell();
         InventoryItemData GetData(Vector2Int position);
+        void ClearCell(Vector2Int position);
     }
 }

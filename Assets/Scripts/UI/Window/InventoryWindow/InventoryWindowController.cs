@@ -9,7 +9,9 @@ namespace UI.Window.InventoryWindow
         private readonly IInventoryService _inventoryService;
         private readonly InventoryWindowView _view;
         private readonly InventoryConfig _inventoryConfig;
-
+        private InventoryItemData _tempItemData;
+        private Vector2Int _tempViewStartPosition;
+        
         public InventoryWindowController(
             InventoryWindowView view,
             IInventoryService inventoryService,
@@ -32,7 +34,9 @@ namespace UI.Window.InventoryWindow
             _view.PrepareCells(rows, columns, unlockCells);
             _view.FillCells(_inventoryService.InventoryMap, GetSprite);
 
-            _view.SubscribeButton(OnAddRandomItemButtonClick, OnDeleteButtonClick);
+            _view.SubscribeButton(OnAddRandomItemButtonClick, OnDeleteButtonClick, OnDropOutOfCell);
+            
+            _view.SubckribeOnCells(OnCellPointerDown, OnCellDrop);
         }
 
         private Sprite GetSprite(string id)
@@ -45,14 +49,16 @@ namespace UI.Window.InventoryWindow
             base.OnShow();
 
             _inventoryService.CellChanged += InventoryServiceOnCellChanged;
+            _view.HideMovable();
         }
 
         protected override void OnHide()
         {
             base.OnHide();
+            
             _inventoryService.CellChanged -= InventoryServiceOnCellChanged;
         }
-
+        
         private InventoryItemConfig GetRandomConfig()
         {
             var randomItemIndex = Random.Range(0, _inventoryConfig.ItemConfigs.Length);
@@ -63,13 +69,11 @@ namespace UI.Window.InventoryWindow
         {
             var inventoryItemConfig = GetRandomConfig();
             var range = Random.Range(0, inventoryItemConfig.MaxCount);
-            Debug.Log($"Adding item: {inventoryItemConfig.Id}, count: {range}");
             _inventoryService.AddItem(inventoryItemConfig.Id, range);
         }
 
         private void OnDeleteButtonClick()
         {
-            Debug.Log("Delete button clicked");
             var inventoryItemConfig = GetRandomConfig();
 
             _inventoryService.RemoveItem(inventoryItemConfig.Id, 1);
@@ -87,5 +91,44 @@ namespace UI.Window.InventoryWindow
 
             _view.RefreshCell(position, data.Count, GetSprite(data.ID));
         }
+        
+        private void OnDropOutOfCell()
+        {
+            if (_tempItemData ==null)
+            {
+                return;
+            }
+            _view.ActivateScroller();
+           _inventoryService.AddItem(_tempItemData.ID, _tempViewStartPosition, _tempItemData.Count);
+           _view.HideMovable();
+           _tempItemData = null;
+        }
+        
+        private void OnCellDrop(Vector2Int position)
+        {
+            if (_tempItemData ==null)
+            {
+                return;
+            }
+            
+            _view.ActivateScroller();
+            _inventoryService.AddItem(_tempItemData.ID,position,_tempItemData.Count);
+            _view.HideMovable();
+            
+            _tempItemData = null;
+        }
+
+        private void OnCellPointerDown(Vector2Int position)
+        {
+            _tempViewStartPosition = position;
+            _view.HideCell(position);
+            _view.DisableScroller();
+            
+            _tempItemData = _inventoryService.GetData(position);
+            _view.SetupMovebleView(position, _tempItemData.Count, GetSprite(_tempItemData.ID));
+
+            _inventoryService.ClearCell(position);
+        }
+
     }
 }
