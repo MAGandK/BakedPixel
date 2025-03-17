@@ -55,10 +55,9 @@ namespace Services.Inventory
                     }
                     else
                     {
-                        //додутамь
+                        inventoryItemData.SetCount(itemConfigMaxCount);
                     }
                     
-
                     CellChanged?.Invoke(position);
 
                     return;

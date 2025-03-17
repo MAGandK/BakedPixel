@@ -17,9 +17,10 @@ namespace UI.Window.InventoryWindow
         [SerializeField] private Button _addItemButton;
         [SerializeField] private Button _deleteButton;
         [SerializeField] private ItemView _movebleItemView;
-
+        
         private InventoryCell[,] _cells;
         private Action _onDropOutOfCell;
+        private float _offset = 80f;
 
         private void Update()
         {
@@ -109,6 +110,15 @@ namespace UI.Window.InventoryWindow
             _movebleItemView.gameObject.SetActive(false);
         }
 
+        public void RaiseMovebleItem()
+        {
+            _movebleItemView.transform.position += new Vector3(0, _offset, 0); 
+        }
+        
+        public void ResetMovebleItemPosition()
+        {
+            _movebleItemView.transform.position -= new Vector3(0, _offset, 0); 
+        }
         public void OnDrop(PointerEventData eventData)
         {
             _onDropOutOfCell?.Invoke();

@@ -113,6 +113,7 @@ namespace UI.Window.InventoryWindow
             
             _view.ActivateScroller();
             _inventoryService.AddItem(_tempItemData.ID,position,_tempItemData.Count);
+            _view.ResetMovebleItemPosition();
             _view.HideMovable();
             
             _tempItemData = null;
@@ -126,9 +127,8 @@ namespace UI.Window.InventoryWindow
             
             _tempItemData = _inventoryService.GetData(position);
             _view.SetupMovebleView(position, _tempItemData.Count, GetSprite(_tempItemData.ID));
-
+            _view.RaiseMovebleItem();
             _inventoryService.ClearCell(position);
         }
-
     }
 }

@@ -1,4 +1,3 @@
-using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -10,15 +9,6 @@ namespace UI.Window.InventoryWindow
     {
         [SerializeField] private Image _itemImage;
         [SerializeField] private TMP_Text _textCount;
-        //
-        // private Vector3 _startPosition;
-        // private float _offset = 20f;
-        // private bool _isDragging = false;
-
-        // private void Start()
-        // {
-        //     _startPosition = _itemImage.rectTransform.localPosition;
-        // }
 
         public void Refresh(int count, Sprite sprite)
         {
@@ -44,20 +34,5 @@ namespace UI.Window.InventoryWindow
                 _itemImage.sprite = sprite;
             }
         }
-
-        // public void OnPointerDown(PointerEventData eventData)
-        // {
-        //     Debug.Log("OnPointerDown: Палец на иконке!");
-        //     _isDragging = true;
-        //     _itemImage.rectTransform.localPosition += new Vector3(0, _offset, 0);
-        // }
-        //
-        // public void OnPointerUp(PointerEventData eventData)
-        // {
-        //     Debug.Log("OnPointerUp: Палец убран!");
-        //     _isDragging = false;
-        //     _itemImage.rectTransform.localPosition = _startPosition;
-        // }
-       
     }
 }
