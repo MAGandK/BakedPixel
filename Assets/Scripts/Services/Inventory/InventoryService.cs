@@ -39,31 +39,24 @@ namespace Services.Inventory
             _inventoryData.SetNewInventoryItems(inventoryItemDatas);
         }
 
-        public void AddItem(string id, int count)
+        public AddInventoryItemResult AddItem(string id, int count)
         {
             var itemConfig = FindItemConfigById(id);
 
             var itemConfigMaxCount = itemConfig.MaxCount;
 
-            foreach (var (position, inventoryItemData) in _inventoryMap)
+            if (TryAddToFilledCell(id, count, itemConfigMaxCount, out var result))
             {
-                if (inventoryItemData.ID == id && inventoryItemData.Count < itemConfigMaxCount)
-                {
-                    if (inventoryItemData.Count + count <= itemConfigMaxCount)
-                    {
-                        inventoryItemData.SetCount(inventoryItemData.Count + count);
-                    }
-                    else
-                    {
-                        inventoryItemData.SetCount(itemConfigMaxCount);
-                    }
-                    
-                    CellChanged?.Invoke(position);
-
-                    return;
-                }
+                return result;
             }
 
+            TryToPlaceFirstFreeCell(id, count, itemConfigMaxCount, out result);
+            return result;
+        }
+
+        private void TryToPlaceFirstFreeCell(string id, int count, int itemConfigMaxCount,
+            out AddInventoryItemResult result)
+        {
             for (int i = 0; i < _configs.Row; i++)
             {
                 for (int j = 0; j < _configs.Column; j++)
@@ -72,14 +65,17 @@ namespace Services.Inventory
 
                     if (!_inventoryMap.ContainsKey(tempPosition))
                     {
-
                         if (count <= itemConfigMaxCount)
                         {
+                            result = new AddInventoryItemResult(true, 0);
                             _inventoryMap.Add(tempPosition, new InventoryItemData(id, count, tempPosition));
                         }
                         else
                         {
-                            //додутамь
+                            var remainingCount = count - itemConfigMaxCount;
+                            _inventoryMap.Add(tempPosition,
+                                new InventoryItemData(id, itemConfigMaxCount, tempPosition));
+                            result = new AddInventoryItemResult(true, remainingCount);
                         }
 
                         CellChanged?.Invoke(tempPosition);
@@ -88,24 +84,92 @@ namespace Services.Inventory
                     }
                 }
             }
+
+            result = new AddInventoryItemResult(false, 0);
         }
 
-
-        public void AddItem(string id, Vector2Int position, int count)
+        private bool TryAddToFilledCell(string id, int count, int itemConfigMaxCount, out AddInventoryItemResult result)
         {
+            foreach (var (position, inventoryItemData) in _inventoryMap)
+            {
+                if (inventoryItemData.ID == id && inventoryItemData.Count < itemConfigMaxCount)
+                {
+                    var expectedCount = inventoryItemData.Count + count;
+
+                    if (expectedCount > itemConfigMaxCount)
+                    {
+                        var remainingCount = expectedCount - itemConfigMaxCount;
+                        inventoryItemData.SetCount(itemConfigMaxCount);
+
+                        result = new AddInventoryItemResult(true, remainingCount);
+                    }
+                    else
+                    {
+                        inventoryItemData.SetCount(expectedCount);
+                        result = new AddInventoryItemResult(true, 0);
+                    }
+
+                    CellChanged?.Invoke(position);
+
+                    return true;
+                }
+            }
+
+            result = new AddInventoryItemResult(false, 0);
+
+            return false;
+        }
+
+        public AddInventoryItemResult AddItem(string id, Vector2Int position, int count)
+        {
+            if (!IsCorrectPosition(position))
+            {
+                return new AddInventoryItemResult(false, 0);
+            }
+
+            var itemConfigMaxCount = FindItemConfigById(id).MaxCount;
+
             if (_inventoryMap.TryGetValue(position, out var inventoryItemData))
             {
                 if (inventoryItemData.ID != id)
                 {
-                    return;
+                    return new AddInventoryItemResult(false, 0);
                 }
 
-                inventoryItemData.SetCount(count);
+                var expectedPlacedCount = inventoryItemData.Count + count;
+
+                if (expectedPlacedCount <= itemConfigMaxCount)
+                {
+                    inventoryItemData.SetCount(inventoryItemData.Count + count);
+                    CellChanged?.Invoke(position);
+                    
+                    return new AddInventoryItemResult(true, 0);
+                }
+
+                inventoryItemData.SetCount(itemConfigMaxCount);
+                CellChanged?.Invoke(position);
+
+                return new AddInventoryItemResult(true, expectedPlacedCount - itemConfigMaxCount);
             }
 
-            _inventoryMap.Add(position, new InventoryItemData(id, count, position));
+            if (count <= itemConfigMaxCount)
+            {
+                _inventoryMap.Add(position, new InventoryItemData(id, count, position));
+                CellChanged?.Invoke(position);
 
+                return new AddInventoryItemResult(true, 0);
+            }
+            
+            _inventoryMap.Add(position, new InventoryItemData(id, itemConfigMaxCount, position));
             CellChanged?.Invoke(position);
+            
+            return new AddInventoryItemResult(true, count - itemConfigMaxCount);
+        }
+
+        private bool IsCorrectPosition(Vector2Int position)
+        {
+            return position.x >= 0 && position.x < _configs.Row
+                                   && position.y >= 0 && position.y < _configs.Column;
         }
 
         public void RemoveItem(string id, int count)
@@ -144,7 +208,7 @@ namespace Services.Inventory
 
         public int GetUnlockCellCount()
         {
-            return _configs.StartLockCellCount + _inventoryData.AdditionalCellCount;
+            return GetMaxCellCount() - _configs.StartLockCellCount + _inventoryData.AdditionalCellCount;
         }
 
         public void UnlockCell()

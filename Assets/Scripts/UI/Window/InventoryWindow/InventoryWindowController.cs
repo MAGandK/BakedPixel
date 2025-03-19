@@ -11,7 +11,7 @@ namespace UI.Window.InventoryWindow
         private readonly InventoryConfig _inventoryConfig;
         private InventoryItemData _tempItemData;
         private Vector2Int _tempViewStartPosition;
-        
+
         public InventoryWindowController(
             InventoryWindowView view,
             IInventoryService inventoryService,
@@ -35,8 +35,8 @@ namespace UI.Window.InventoryWindow
             _view.FillCells(_inventoryService.InventoryMap, GetSprite);
 
             _view.SubscribeButton(OnAddRandomItemButtonClick, OnDeleteButtonClick, OnDropOutOfCell);
-            
-            _view.SubckribeOnCells(OnCellPointerDown, OnCellDrop);
+
+            _view.SubckribeOnCells(OnCellPointerDown, OnCellDrop, OnCellPointerUp);
         }
 
         private Sprite GetSprite(string id)
@@ -55,21 +55,29 @@ namespace UI.Window.InventoryWindow
         protected override void OnHide()
         {
             base.OnHide();
-            
+
             _inventoryService.CellChanged -= InventoryServiceOnCellChanged;
         }
-        
+
         private InventoryItemConfig GetRandomConfig()
         {
             var randomItemIndex = Random.Range(0, _inventoryConfig.ItemConfigs.Length);
             return _inventoryConfig.ItemConfigs[randomItemIndex];
         }
 
-        private void OnAddRandomItemButtonClick()
+        private void OnAddRandomItemButtonClick(int placedCount, Vector2Int position)
         {
             var inventoryItemConfig = GetRandomConfig();
-            var range = Random.Range(0, inventoryItemConfig.MaxCount);
-            _inventoryService.AddItem(inventoryItemConfig.Id, range);
+            placedCount = Mathf.Clamp(placedCount, 1, inventoryItemConfig.MaxCount);
+
+            if (position.x < 0 || position.y < 0)
+            {
+                _inventoryService.AddItem(inventoryItemConfig.Id, placedCount);
+            }
+            else
+            {
+                _inventoryService.AddItem(inventoryItemConfig.Id, position, placedCount);
+            }
         }
 
         private void OnDeleteButtonClick()
@@ -91,30 +99,35 @@ namespace UI.Window.InventoryWindow
 
             _view.RefreshCell(position, data.Count, GetSprite(data.ID));
         }
-        
+
         private void OnDropOutOfCell()
         {
-            if (_tempItemData ==null)
+            if (_tempItemData == null)
             {
                 return;
             }
+
             _view.ActivateScroller();
-           _inventoryService.AddItem(_tempItemData.ID, _tempViewStartPosition, _tempItemData.Count);
-           _view.HideMovable();
-           _tempItemData = null;
+            _inventoryService.AddItem(_tempItemData.ID, _tempViewStartPosition, _tempItemData.Count);
+            _view.HideMovable();
+            _tempItemData = null;
         }
-        
+
         private void OnCellDrop(Vector2Int position)
         {
-            if (_tempItemData ==null)
+            if (_tempItemData == null)
             {
                 return;
             }
-            
+
             _view.ActivateScroller();
-            _inventoryService.AddItem(_tempItemData.ID,position,_tempItemData.Count);
-            _view.ResetMovebleItemPosition();
             _view.HideMovable();
+
+            var result = _inventoryService.AddItem(_tempItemData.ID, position, _tempItemData.Count);
+            if (result is { IsAdded: true, RemainCount: > 0 })
+            {
+                _inventoryService.AddItem(_tempItemData.ID, _tempViewStartPosition, result.RemainCount);
+            }
             
             _tempItemData = null;
         }
@@ -124,11 +137,20 @@ namespace UI.Window.InventoryWindow
             _tempViewStartPosition = position;
             _view.HideCell(position);
             _view.DisableScroller();
-            
+
             _tempItemData = _inventoryService.GetData(position);
             _view.SetupMovebleView(position, _tempItemData.Count, GetSprite(_tempItemData.ID));
-            _view.RaiseMovebleItem();
             _inventoryService.ClearCell(position);
+        }
+        
+        private void OnCellPointerUp(Vector2Int obj)
+        {
+            if (_tempItemData == null || !Input.GetMouseButtonUp(0))
+            {
+                return;
+            }
+            
+            OnDropOutOfCell();
         }
     }
 }

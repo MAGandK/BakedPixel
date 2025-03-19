@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a3204314b11346cdb85dd83254e74a39, type: 3}
   m_Name: InventoryConfig
   m_EditorClassIdentifier: 
-  _column: 5
-  _row: 3
+  _column: 3
+  _row: 5
   _startLockCellCount: 15
   _itemConfigs:
   - {fileID: 11400000, guid: a37eb14e07e504f0a8c011b3a600b597, type: 2}

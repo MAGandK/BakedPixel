@@ -11,8 +11,8 @@ namespace Services.Inventory
         event Action<Vector2Int> CellChanged;
 
         Dictionary<Vector2Int, InventoryItemData> InventoryMap { get; }
-        void AddItem(string id, int count);
-        void AddItem(string id, Vector2Int position, int count);
+       AddInventoryItemResult AddItem(string id, int count);
+       AddInventoryItemResult AddItem(string id, Vector2Int position, int count);
         void RemoveItem(string id, int count);
         void RemoveItem(string id, Vector2Int position, int count);
 

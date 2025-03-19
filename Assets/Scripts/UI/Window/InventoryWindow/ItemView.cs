@@ -10,8 +10,11 @@ namespace UI.Window.InventoryWindow
         [SerializeField] private Image _itemImage;
         [SerializeField] private TMP_Text _textCount;
 
-        public void Refresh(int count, Sprite sprite)
+        [SerializeField] private TMP_Text _position;
+        public void Refresh(int count, Sprite sprite, Vector2Int position)
         {
+            _position.text = position.ToString();
+            
             if (count == 0)
             {
                gameObject.SetActive(false);
